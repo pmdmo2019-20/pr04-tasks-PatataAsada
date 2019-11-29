@@ -1,6 +1,19 @@
 package es.iessaladillo.pedrojoya.pr04.data.entity
 
-// TODO: Crea una clase llamada Task con las siguientes propiedades:
-//  id (Long), concept(String), createdAt (String),
-//  completed (Boolean), completedAt (String)
+import java.util.*
 
+class Task(val concept: String) {
+
+    val id: Int = count
+    val createdAt: String = Date().toString()
+    var completed: Boolean = false
+    var completedAt: String = ""
+
+    companion object {
+        private var count: Int = 0
+            get() {
+                field++
+                return count
+            }
+    }
+}
