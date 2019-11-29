@@ -4,13 +4,13 @@ import java.util.*
 
 class Task(val concept: String) {
 
-    val id: Int = count
+    val id: Long = count
     val createdAt: String = Date().toString()
     var completed: Boolean = false
     var completedAt: String = ""
 
     companion object {
-        private var count: Int = 0
+        private var count: Long = 0
             get() {
                 field++
                 return count

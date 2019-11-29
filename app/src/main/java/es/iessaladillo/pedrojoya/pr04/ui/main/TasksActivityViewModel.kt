@@ -55,17 +55,17 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
-        // TODO
+        _currentFilter.value = TasksActivityFilter.ALL
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas completadas.
     fun filterCompleted() {
-        // TODO
+        _currentFilter.value = TasksActivityFilter.COMPLETED
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas pendientes.
     fun filterPending() {
-        // TODO
+        _currentFilter.value = TasksActivityFilter.PENDING
     }
 
     // Agrega una nueva tarea con dicho concepto. Si la se estaba mostrando
@@ -83,7 +83,7 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Borra la tarea
     fun deleteTask(task: Task) {
-        // TODO
+        repository.deleteTask(task.id)
     }
 
     // Borra todas las tareas mostradas actualmente en el RecyclerView.
@@ -126,12 +126,16 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
     fun isValidConcept(concept: String): Boolean {
-        // TODO
+        return concept.isNotEmpty()
     }
 
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
-        // TODO
+        when(_currentFilter.value){
+            TasksActivityFilter.ALL -> _tasks.value = repository.queryAllTasks()
+            TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks()
+            TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks()
+        }
     }
 
 }
