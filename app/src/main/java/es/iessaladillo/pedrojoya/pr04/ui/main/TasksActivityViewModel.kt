@@ -1,17 +1,21 @@
 package es.iessaladillo.pedrojoya.pr04.ui.main
 
+
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.base.Event
 import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 
-class TasksActivityViewModel(private val repository: Repository,
-                             private val application: Application) : ViewModel() {
+class TasksActivityViewModel(
+    private val repository: Repository,
+    private val application: Application
+) : ViewModel() {
 
     // Estado de la interfaz
 
@@ -73,12 +77,13 @@ class TasksActivityViewModel(private val repository: Repository,
     // mostrar en el RecyclerView la lista con todas las tareas, no sólo
     // las completadas.
     fun addTask(concept: String) {
-        // TODO
+        repository.addTask(concept)
+        filterAll()
     }
 
     // Agrega la tarea
     fun insertTask(task: Task) {
-        // TODO
+        repository.insertTask(task)
     }
 
     // Borra la tarea
@@ -90,7 +95,13 @@ class TasksActivityViewModel(private val repository: Repository,
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que borrar.
     fun deleteTasks() {
-        // TODO
+        if (tasks.value!!.isNotEmpty()) {
+            var taskIdList: List<Long> = emptyList()
+            tasks.value!!.forEach {
+                taskIdList.plus(it.id)
+            }
+            repository.deleteTasks(taskIdList)
+        }
     }
 
     // Marca como completadas todas las tareas mostradas actualmente en el RecyclerView,
@@ -131,7 +142,7 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
-        when(_currentFilter.value){
+        when (_currentFilter.value) {
             TasksActivityFilter.ALL -> _tasks.value = repository.queryAllTasks()
             TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks()
             TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks()
