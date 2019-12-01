@@ -19,15 +19,23 @@ import kotlinx.android.synthetic.main.tasks_activity_item.*
 class TasksActivityAdapter() :
     RecyclerView.Adapter<TasksActivityAdapter.ViewHolder>() {
 
-    var onCheckPressedListener: ((Int) -> Unit)? = null
+    private var onClickListener: OnItemClickListener? = null
     private var data: List<Task> = emptyList()
+
+    init {
+        setHasStableIds(true)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
 
         val itemView = layoutInflater.inflate(R.layout.tasks_activity_item, parent, false)
 
-        return ViewHolder(itemView)
+        return ViewHolder(itemView, onClickListener)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener){
+        onClickListener = listener
     }
 
     fun submitList(taskList: List<Task>) {
@@ -45,17 +53,25 @@ class TasksActivityAdapter() :
 
     fun getItem(adapterPosition: Int): Task = data[adapterPosition]
 
-    inner class ViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView),
+    inner class ViewHolder(override val containerView: View, onClickListener: OnItemClickListener?) :
+        RecyclerView.ViewHolder(containerView),
         LayoutContainer {
+        init {
+            containerView.setOnClickListener{ onClickListener?.onClick(adapterPosition) }
+        }
+
         fun bind(task: Task) {
             lblConcept.text = task.concept
             chkCompleted.isChecked = task.completed
             if (task.completed) lblCompleted.text =
-                String.format("%s %s", R.string.tasks_item_completedAt.toString(), task.completedAt)
+                String.format(containerView.context.getString(R.string.tasks_item_completedAt),task.completedAt)
             else lblCompleted.text =
-                String.format("%s %s", R.string.tasks_item_createdAt, task.createdAt)
-            containerView.setOnClickListener{onCheckPressedListener?.invoke(adapterPosition)}
+                String.format(containerView.context.getString(R.string.tasks_item_createdAt),task.createdAt)
         }
+    }
+
+    interface OnItemClickListener {
+        fun onClick(adapterPosition: Int)
     }
 }
 

@@ -5,7 +5,9 @@ import java.util.*
 
 object LocalRepository : Repository {
 
-    private val taskList: MutableList<Task> = mutableListOf()
+    private val taskList: MutableList<Task> = mutableListOf(
+        Task("something")
+    )
 
     override fun queryAllTasks(): List<Task> {
         return taskList.sortedWith(compareBy { it.id })
@@ -27,7 +29,7 @@ object LocalRepository : Repository {
     }
 
     override fun insertTask(task: Task) {
-        taskList.plus(task)
+        taskList.add(task)
     }
 
     override fun deleteTask(taskId: Long) {

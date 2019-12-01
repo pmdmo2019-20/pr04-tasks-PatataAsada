@@ -4,16 +4,16 @@ import java.util.*
 
 class Task(val concept: String) {
 
-    val id: Long = count
+    val id: Long = getCount()
     val createdAt: String = Date().toString()
     var completed: Boolean = false
-    var completedAt: String = createdAt
+    var completedAt: String = ""
 
     companion object {
         private var count: Long = 0
-            get() {
-                field++
-                return count
-            }
+        fun getCount():Long{
+            count++
+            return count
+        }
     }
 }

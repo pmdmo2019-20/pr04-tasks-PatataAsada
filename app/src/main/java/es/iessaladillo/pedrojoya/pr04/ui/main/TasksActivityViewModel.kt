@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.base.Event
 import es.iessaladillo.pedrojoya.pr04.data.Repository
@@ -41,6 +40,9 @@ class TasksActivityViewModel(
     val lblEmptyViewText: LiveData<String>
         get() = _lblEmptyViewText
 
+    init {
+        queryTasks(TasksActivityFilter.ALL)
+    }
     // Eventos de comunicación con la actividad
 
     private val _onStartActivity: MutableLiveData<Event<Intent>> = MutableLiveData()
@@ -60,18 +62,24 @@ class TasksActivityViewModel(
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
         _currentFilter.value = TasksActivityFilter.ALL
+        _currentFilterMenuItemId.value = R.id.mnuFilterAll
+        _activityTitle.value = application.getString(R.string.tasks_title_all)
         queryTasks(_currentFilter.value!!)
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas completadas.
     fun filterCompleted() {
         _currentFilter.value = TasksActivityFilter.COMPLETED
+        _currentFilterMenuItemId.value = R.id.mnuFilterCompleted
+        _activityTitle.value = application.getString(R.string.tasks_title_completed)
         queryTasks(_currentFilter.value!!)
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas pendientes.
     fun filterPending() {
         _currentFilter.value = TasksActivityFilter.PENDING
+        _currentFilterMenuItemId.value = R.id.mnuFilterPending
+        _activityTitle.value = application.getString(R.string.tasks_title_pending)
         queryTasks(_currentFilter.value!!)
     }
 
@@ -81,7 +89,7 @@ class TasksActivityViewModel(
     // las completadas.
     fun addTask(concept: String) {
         repository.addTask(concept)
-        filterAll()
+        queryTasks(_currentFilter.value!!)
     }
 
     // Agrega la tarea
@@ -92,6 +100,7 @@ class TasksActivityViewModel(
     // Borra la tarea
     fun deleteTask(task: Task) {
         repository.deleteTask(task.id)
+        _onShowTaskDeleted.value = Event(task)
     }
 
     // Borra todas las tareas mostradas actualmente en el RecyclerView.
@@ -104,9 +113,8 @@ class TasksActivityViewModel(
                 taskIdList.plus(it.id)
             }
             repository.deleteTasks(taskIdList)
-            showUndo(tasks.value!!)
-        }
-        else _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_delete))
+        } else _onShowMessage.value =
+            Event(application.getString(R.string.tasks_no_tasks_to_delete))
     }
 
     // Marca como completadas todas las tareas mostradas actualmente en el RecyclerView,
@@ -114,7 +122,7 @@ class TasksActivityViewModel(
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como completadas.
     fun markTasksAsCompleted() {
-        if(tasks.value!!.isNotEmpty()){
+        if (tasks.value!!.isNotEmpty()) {
             tasks.value!!.forEach {
                 repository.markTaskAsCompleted(it.id)
             }
@@ -128,7 +136,7 @@ class TasksActivityViewModel(
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como pendientes.
     fun markTasksAsPending() {
-        if(tasks.value!!.isNotEmpty()){
+        if (tasks.value!!.isNotEmpty()) {
             tasks.value!!.forEach {
                 repository.markTaskAsPending(it.id)
             }
@@ -148,7 +156,7 @@ class TasksActivityViewModel(
     // valor de isCompleted. Si es true la tarea es marcada como completada y
     // en caso contrario es marcada como pendiente.
     fun updateTaskCompletedState(task: Task, isCompleted: Boolean) {
-        if(isCompleted) repository.markTaskAsCompleted(task.id)
+        if (isCompleted) repository.markTaskAsCompleted(task.id)
         else repository.markTaskAsPending(task.id)
     }
 
@@ -159,15 +167,11 @@ class TasksActivityViewModel(
 
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
-        when (_currentFilter.value) {
+        when (filter) {
             TasksActivityFilter.ALL -> _tasks.value = repository.queryAllTasks()
             TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks()
             TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks()
         }
-    }
-
-    private fun showUndo(taskList: List<Task>){
-
     }
 
 }
