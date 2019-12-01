@@ -60,16 +60,19 @@ class TasksActivityViewModel(
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
         _currentFilter.value = TasksActivityFilter.ALL
+        queryTasks(_currentFilter.value!!)
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas completadas.
     fun filterCompleted() {
         _currentFilter.value = TasksActivityFilter.COMPLETED
+        queryTasks(_currentFilter.value!!)
     }
 
     // Hace que se muestre en el RecyclerView sólo las tareas pendientes.
     fun filterPending() {
         _currentFilter.value = TasksActivityFilter.PENDING
+        queryTasks(_currentFilter.value!!)
     }
 
     // Agrega una nueva tarea con dicho concepto. Si la se estaba mostrando
@@ -101,7 +104,9 @@ class TasksActivityViewModel(
                 taskIdList.plus(it.id)
             }
             repository.deleteTasks(taskIdList)
+            showUndo(tasks.value!!)
         }
+        else _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_delete))
     }
 
     // Marca como completadas todas las tareas mostradas actualmente en el RecyclerView,
@@ -109,7 +114,13 @@ class TasksActivityViewModel(
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como completadas.
     fun markTasksAsCompleted() {
-        // TODO
+        if(tasks.value!!.isNotEmpty()){
+            tasks.value!!.forEach {
+                repository.markTaskAsCompleted(it.id)
+            }
+            queryTasks(_currentFilter.value!!)
+        }
+
     }
 
     // Marca como pendientes todas las tareas mostradas actualmente en el RecyclerView,
@@ -117,7 +128,12 @@ class TasksActivityViewModel(
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como pendientes.
     fun markTasksAsPending() {
-        // TODO
+        if(tasks.value!!.isNotEmpty()){
+            tasks.value!!.forEach {
+                repository.markTaskAsPending(it.id)
+            }
+            queryTasks(_currentFilter.value!!)
+        }
     }
 
     // Hace que se envíe un Intent con la lista de tareas mostradas actualmente
@@ -132,7 +148,8 @@ class TasksActivityViewModel(
     // valor de isCompleted. Si es true la tarea es marcada como completada y
     // en caso contrario es marcada como pendiente.
     fun updateTaskCompletedState(task: Task, isCompleted: Boolean) {
-        // TODO
+        if(isCompleted) repository.markTaskAsCompleted(task.id)
+        else repository.markTaskAsPending(task.id)
     }
 
     // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
@@ -147,6 +164,10 @@ class TasksActivityViewModel(
             TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks()
             TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks()
         }
+    }
+
+    private fun showUndo(taskList: List<Task>){
+
     }
 
 }

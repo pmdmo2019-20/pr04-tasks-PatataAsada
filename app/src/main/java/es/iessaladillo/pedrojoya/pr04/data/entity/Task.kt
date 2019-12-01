@@ -7,7 +7,7 @@ class Task(val concept: String) {
     val id: Long = count
     val createdAt: String = Date().toString()
     var completed: Boolean = false
-    var completedAt: String = ""
+    var completedAt: String = createdAt
 
     companion object {
         private var count: Long = 0

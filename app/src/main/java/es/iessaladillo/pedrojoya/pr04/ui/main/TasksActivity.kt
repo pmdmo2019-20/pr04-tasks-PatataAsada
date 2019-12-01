@@ -1,25 +1,23 @@
 package es.iessaladillo.pedrojoya.pr04.ui.main
 
-import android.content.ActivityNotFoundException
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.annotation.MenuRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
-import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.R
+import es.iessaladillo.pedrojoya.pr04.base.Event
 import es.iessaladillo.pedrojoya.pr04.base.observeEvent
 import es.iessaladillo.pedrojoya.pr04.data.LocalRepository
 import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
-import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
 import es.iessaladillo.pedrojoya.pr04.utils.invisibleUnless
 import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
 import kotlinx.android.synthetic.main.tasks_activity.*
@@ -28,13 +26,43 @@ import kotlinx.android.synthetic.main.tasks_activity.*
 class TasksActivity : AppCompatActivity() {
 
     private var mnuFilter: MenuItem? = null
-    private val repository:Repository = LocalRepository
-    private lateinit var viewModel: TasksActivityViewModel
+    private val repository: Repository = LocalRepository
+    private val viewModel: TasksActivityViewModel by viewModels {
+        TasksActivityViewModelFactory(repository,application)
+    }
+    private val listAdapter: TasksActivityAdapter = TasksActivityAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this, TasksActivityViewModelFactory(repository,application))
-            .get(TasksActivityViewModel::class.java)
+
+        setupObservers()
+        setupReciclerView()
+    }
+
+    private fun setupReciclerView() {
+        lstTasks.run {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this.context)
+            itemAnimator = DefaultItemAnimator()
+            addItemDecoration(
+                DividerItemDecoration(
+                    this.context,
+                    RecyclerView.VERTICAL
+                )
+            )
+            setOnClickListener { listAdapter.onCheckPressedListener }
+            setOnSwipeListener { viewHolder, _ -> viewModel.deleteTask(listAdapter.getItem(viewHolder.adapterPosition)) }
+            adapter = listAdapter
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.tasks.observe(this){showTasks(viewModel.tasks.value!!)}
+        viewModel.onShowMessage.observeEvent(this) { showSnackbar(it) }
+    }
+
+    private fun showSnackbar(message: String) {
+        Snackbar.make(lstTasks, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -59,8 +87,8 @@ class TasksActivity : AppCompatActivity() {
 
     private fun checkMenuItem(@MenuRes menuItemId: Int) {
         lstTasks.post {
-            val item = mnuFilter.findItem(menuItemId)
-            item?.let { menuItem ->
+            val item = mnuFilter?.subMenu?.findItem(menuItemId)
+            item?.let { menuItem:MenuItem ->
                 menuItem.isChecked = true
             }
         }

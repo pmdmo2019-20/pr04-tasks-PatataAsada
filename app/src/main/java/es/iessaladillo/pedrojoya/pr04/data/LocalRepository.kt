@@ -5,7 +5,7 @@ import java.util.*
 
 object LocalRepository : Repository {
 
-    lateinit var taskList: MutableList<Task>
+    private val taskList: MutableList<Task> = mutableListOf()
 
     override fun queryAllTasks(): List<Task> {
         return taskList.sortedWith(compareBy { it.id })
